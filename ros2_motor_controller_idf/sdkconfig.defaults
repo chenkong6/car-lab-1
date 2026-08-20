@@ -1,0 +1,6 @@
+# ESP32-S3-N16R8 target settings. Wi-Fi credentials are entered through
+# `idf.py menuconfig` and deliberately are not stored in this repository.
+CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE=y
+CONFIG_MICRO_ROS_ESP_NETIF_WLAN=y
+CONFIG_MICRO_ROS_AGENT_IP="10.106.198.105"
+CONFIG_MICRO_ROS_AGENT_PORT="8888"

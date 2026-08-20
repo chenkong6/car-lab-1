@@ -1,0 +1,11 @@
+menu "Motor controller settings"
+
+config MOTOR_CONTROLLER_APP_STACK
+    int "micro-ROS motor controller task stack (bytes)"
+    default 16000
+
+config MOTOR_CONTROLLER_APP_TASK_PRIO
+    int "micro-ROS motor controller task priority"
+    default 5
+
+endmenu

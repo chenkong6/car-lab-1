@@ -1,0 +1,15 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CubeMX：F103 两轮小车起步</title><link rel="stylesheet" href="../assets/lesson.css"></head><body>
+<h1>CubeMX：STM32F103C8T6 两轮差速小车</h1>
+<p>成果：生成一个 Keil 工程，PA0/PA3 输出 PWM，PA1/PA2/PA4/PA5 控制 L298N 方向。</p>
+<div class="step"><h2>1. 新建芯片工程</h2><p>打开 STM32CubeMX → New Project → MCU/MPU Selector，搜索并选择 <code>STM32F103C8Tx</code>。</p></div>
+<div class="step"><h2>2. System Core</h2><p>System Core → SYS：Debug 设为 <b>Serial Wire</b>，保留 PA13/PA14 给 ST-Link。</p></div>
+<div class="step"><h2>3. 分配引脚</h2><table><tr><th>功能</th><th>引脚</th><th>L298N</th></tr><tr><td>TIM2 PWM CH1</td><td>PA0</td><td>ENA</td></tr><tr><td>GPIO_Output</td><td>PA1 / PA2</td><td>IN1 / IN2</td></tr><tr><td>TIM2 PWM CH4</td><td>PA3</td><td>ENB</td></tr><tr><td>GPIO_Output</td><td>PA4 / PA5</td><td>IN3 / IN4</td></tr></table><p>PA6、PA7 不使用；L298N 的 ENA/ENB 跳帽必须拔掉。</p></div>
+<div class="step"><h2>4. 配置时钟</h2><p>System Core → RCC：HSE 设为 <b>Crystal/Ceramic Resonator</b>。Clock Configuration：SYSCLK 配为 <b>72 MHz</b>（HSE 8 MHz、PLL ×9），APB1 Prescaler 保持 /2。</p></div>
+<div class="step"><h2>5. 配置 TIM2 PWM</h2><pre>Prescaler: 71
+Counter Period: 999
+CH1 Pulse: 0
+CH4 Pulse: 0</pre><p>这是约 1 kHz PWM；程序运行时再设为 40% 占空比。</p></div>
+<div class="step"><h2>6. 生成 Keil 工程</h2><p>Project Manager：Project Name 填 <code>l298n_auto_car</code>；Toolchain / IDE 选 <b>MDK-ARM</b>；Code Generator 勾选 <b>Keep User Code when re-generating</b>；点击 <b>GENERATE CODE</b>。</p></div>
+<div class="step warn"><h2>接线安全</h2><p>STM32 GND、L298N GND 与电机电源负极必须共地。TT 电机使用约 6V；不要长期直接接 12V。</p></div>
+<div class="step check"><h2>检查题</h2><p>不看上文：哪两个引脚输出 PWM？答案是 PA0（CH1）和 PA3（CH4）。完成后把 CubeMX 的 Pinout & Configuration 截图发来，再加入固定循环逻辑。</p></div>
+<p>参考：<a href="https://www.st.com/en/development-tools/stm32cubemx.html">ST STM32CubeMX</a>，<a href="https://www.st.com/content/st_com/en/stm32cubemx.html">ST 代码生成说明</a>。</p></body></html>
