@@ -23,7 +23,13 @@
 #include "usbd_custom_hid_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include <string.h>
 
+extern volatile int32_t g_hid_target_um;
+extern volatile uint8_t g_hid_move_req;
+extern volatile uint8_t g_hid_reset_req;
+extern volatile int32_t g_hid_jog_um;
+extern volatile uint8_t g_hid_jog_req;
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -129,6 +135,13 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
   0x75, 0x08,              /*   Report Size (8)                       */
   0x95, 0x0F,              /*   Report Count (15)                     */
   0xB1, 0x02,              /*   Feature (Data,Var,Abs)                */
+  0x85, 0x02,              /*   Report ID (2)                         */
+  0x09, 0x03,              /*   Usage (0x03)                          */
+  0x15, 0x00,              /*   Logical Minimum (0)                   */
+  0x26, 0xFF, 0x00,        /*   Logical Maximum (255)                 */
+  0x75, 0x08,              /*   Report Size (8)                       */
+  0x95, 0x06,              /*   Report Count (6): pos[4]+status[2]    */
+  0x81, 0x02,              /*   Input (Data,Var,Abs)                  */
   0xC0                     /* End Collection                          */
   /* USER CODE END 0 */
 };
@@ -162,6 +175,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 static int8_t CUSTOM_HID_Init_FS(void);
 static int8_t CUSTOM_HID_DeInit_FS(void);
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
+static int8_t CUSTOM_HID_OutReport_FS(uint8_t *report, uint16_t len);
 
 /**
   * @}
@@ -172,7 +186,8 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   CUSTOM_HID_ReportDesc_FS,
   CUSTOM_HID_Init_FS,
   CUSTOM_HID_DeInit_FS,
-  CUSTOM_HID_OutEvent_FS
+  CUSTOM_HID_OutEvent_FS,
+  CUSTOM_HID_OutReport_FS
 };
 
 /** @defgroup USBD_CUSTOM_HID_Private_Functions USBD_CUSTOM_HID_Private_Functions
@@ -215,6 +230,49 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
   /* USER CODE BEGIN 6 */
   return (USBD_OK);
   /* USER CODE END 6 */
+}
+
+/**
+  * @brief  0xA0 feature report: [0x13][int32 distance in 0.001 mm]
+  */
+static int8_t CUSTOM_HID_OutReport_FS(uint8_t *report, uint16_t len)
+{
+  uint8_t  *p = report;
+  uint16_t  n = len;
+
+  /* Some hosts include the report ID in the data stage. */
+  if ((n >= 2U) && (p[0] == 0xA0U))
+  {
+    p++;
+    n--;
+  }
+
+  if ((n >= 1U) && (p[0] == 0x14U))
+  {
+    g_hid_reset_req = 1U;
+    return (USBD_OK);
+  }
+
+  if ((n >= 5U) && (p[0] == 0x15U))
+  {
+    int32_t um;
+
+    memcpy(&um, &p[1], sizeof(um));
+    g_hid_jog_um = um;
+    g_hid_jog_req = 1U;
+    return (USBD_OK);
+  }
+
+  if ((n >= 5U) && (p[0] == 0x13U))
+  {
+    int32_t um;
+
+    memcpy(&um, &p[1], sizeof(um));
+    g_hid_target_um = um;
+    g_hid_move_req = 1U;
+  }
+
+  return (USBD_OK);
 }
 
 /* USER CODE BEGIN 7 */

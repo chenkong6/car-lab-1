@@ -97,12 +97,14 @@ typedef struct _USBD_CUSTOM_HID_Itf
   int8_t (* Init)(void);
   int8_t (* DeInit)(void);
   int8_t (* OutEvent)(uint8_t event_idx, uint8_t state);
+  int8_t (* OutReport)(uint8_t *report, uint16_t len);
 
 } USBD_CUSTOM_HID_ItfTypeDef;
 
 typedef struct
 {
   uint8_t              Report_buf[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
+  uint16_t             ReportLen;
   uint32_t             Protocol;
   uint32_t             IdleState;
   uint32_t             AltSetting;
